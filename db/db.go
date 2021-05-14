@@ -2,16 +2,17 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/go-pg/pg/v10"
 )
 
-func Connect() *pg.DB {
+func Connect(dbPath string) *pg.DB {
 	options := &pg.Options{
 		User:     "postgres",
 		Password: "pass",
-		Addr:     "127.0.0.1:5432",
+		Addr:     fmt.Sprintf("%s:5432", dbPath),
 	}
 
 	pgDB := pg.Connect(options)

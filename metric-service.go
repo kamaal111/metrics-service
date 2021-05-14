@@ -8,10 +8,13 @@ import (
 	"github.com/kamaal111/metrics-service/router"
 )
 
-func main() {
-	pgDB := db.Connect()
+const PATH = "127.0.0.1"
+const PORT = "8080"
 
-	router.HandleRequests(pgDB)
+func main() {
+	pgDB := db.Connect(PATH)
+
+	router.HandleRequests(pgDB, fmt.Sprintf("%s:%s", PATH, PORT))
 
 	err := pgDB.Close()
 	if err != nil {
