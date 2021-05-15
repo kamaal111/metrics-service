@@ -8,18 +8,17 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-// FIXME: SHOULD ACTUALLY LOG A POST
 func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		errorHandler(w, err.Error(), 500)
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	var payload MetricsPayload
 	err = json.Unmarshal([]byte(body), &payload)
 	if err != nil {
-		errorHandler(w, err.Error(), 500)
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -30,7 +29,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	}
 	output, err := json.Marshal(response)
 	if err != nil {
-		errorHandler(w, err.Error(), 400)
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("content-type", "application/json")
@@ -45,7 +44,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	output, err := json.Marshal(response)
 	if err != nil {
-		errorHandler(w, err.Error(), 400)
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("content-type", "application/json")
