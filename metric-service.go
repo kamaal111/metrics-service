@@ -3,15 +3,22 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/kamaal111/metrics-service/db"
 	"github.com/kamaal111/metrics-service/router"
 )
 
-const PATH = "127.0.0.1"
-const PORT = "8080"
-
 func main() {
+	PATH := os.Getenv("APP_PATH")
+	if len(PATH) < 1 {
+		PATH = "127.0.0.1"
+	}
+	PORT := os.Getenv("APP_PORT")
+	if len(PORT) < 1 {
+		PORT = "8080"
+	}
+
 	pgDB := db.Connect(PATH)
 
 	router.HandleRequests(pgDB, fmt.Sprintf("%s:%s", PATH, PORT))
