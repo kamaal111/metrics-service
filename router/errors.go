@@ -5,11 +5,6 @@ import (
 	"net/http"
 )
 
-type Error struct {
-	Message string `json:"message"`
-	Status  int    `json:"status"`
-}
-
 func errorHandler(w http.ResponseWriter, error string, code int) {
 	errorResponse := Error{
 		Message: error,
@@ -18,4 +13,9 @@ func errorHandler(w http.ResponseWriter, error string, code int) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(errorResponse.Status)
 	json.NewEncoder(w).Encode(errorResponse)
+}
+
+type Error struct {
+	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
