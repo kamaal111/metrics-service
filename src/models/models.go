@@ -1,9 +1,18 @@
 package models
 
-type MetricModel struct {
-	tableName struct{}       `pg:"metric"`
+type Apps struct {
+	tableName        struct{}        `pg:"apps"`
+	ID               int             `pg:"id,pk"`
+	BundleIdentifier string          `pg:"bundle_identifier,unique"`
+	Metrics          []*MetricsTable `pg:"metrics,rel:has-many"`
+}
+
+type MetricsTable struct {
+	tableName struct{}       `pg:"metrics"`
 	ID        int            `pg:"id,pk"`
 	Payload   MetricsPayload `pg:"payload"`
+	AppID     int            `pg:"app_id"`
+	App       *Apps          `pg:"app,rel:has-one"`
 }
 
 type MetricsPayload struct {
@@ -50,10 +59,11 @@ type HistogramValue struct {
 }
 
 type MetaData struct {
-	AppBuildVersion string `json:"appBuildVersion,omitempty"`
-	OSVersion       string `json:"osVersion,omitempty"`
-	RegionFormat    string `json:"regionFormat,omitempty"`
-	DeviceType      string `json:"deviceType,omitempty"`
+	AppBuildVersion      string `json:"appBuildVersion,omitempty"`
+	OSVersion            string `json:"osVersion,omitempty"`
+	RegionFormat         string `json:"regionFormat,omitempty"`
+	DeviceType           string `json:"deviceType,omitempty"`
+	PlatformArchitecture string `json:"platformArchitecture,omitempty"`
 }
 
 type GPUMetrics struct {

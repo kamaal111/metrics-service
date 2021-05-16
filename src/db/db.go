@@ -6,6 +6,9 @@ import (
 	"log"
 
 	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
+
+	"github.com/kamaal111/metrics-service/src/models"
 )
 
 func Connect(dbPath string) *pg.DB {
@@ -32,5 +35,29 @@ func Connect(dbPath string) *pg.DB {
 }
 
 func createSchema(pgDB *pg.DB) error {
+	err := createAppsTable(pgDB)
+	if err != nil {
+		return err
+	}
+	err = createMetricsTable(pgDB)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func createAppsTable(pgDB *pg.DB) error {
+	options := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	err := pgDB.Model((*models.Apps)(nil)).CreateTable(options)
+	return err
+}
+
+func createMetricsTable(pgDB *pg.DB) error {
+	options := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	err := pgDB.Model((*models.MetricsTable)(nil)).CreateTable(options)
+	return err
 }
