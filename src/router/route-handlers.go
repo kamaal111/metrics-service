@@ -42,18 +42,8 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	response := struct {
-		Success bool `json:"success"`
-	}{
-		Success: true,
-	}
-	output, err := json.Marshal(response)
-	if err != nil {
-		errorHandler(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("content-type", "application/json")
-	w.Write(output)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
