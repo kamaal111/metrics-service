@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-pg/pg/v10"
+
+	"github.com/kamaal111/metrics-service/models"
 )
 
 func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {

@@ -1,5 +1,12 @@
-package router
+package models
 
+type MetricModel struct {
+	tableName struct{}       `pg:"metric"`
+	ID        int            `pg:"id,pk"`
+	Payload   MetricsPayload `pg:"payload"`
+}
+
+// MetricsPayload ...
 type MetricsPayload struct {
 	LocationActivityMetrics          LocationActivityMetrics          `json:"locationActivityMetrics,omitempty"`
 	CellularConditionMetrics         CellularConditionMetrics         `json:"cellularConditionMetrics,omitempty"`
