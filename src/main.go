@@ -11,11 +11,11 @@ import (
 
 func main() {
 	PATH := os.Getenv("APP_PATH")
-	if len(PATH) < 1 {
+	if PATH == "" {
 		PATH = "127.0.0.1"
 	}
 	PORT := os.Getenv("APP_PORT")
-	if len(PORT) < 1 {
+	if PORT == "" {
 		PORT = "8080"
 	}
 
