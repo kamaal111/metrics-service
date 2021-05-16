@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-pg/pg/v10"
 
-	"github.com/kamaal111/metrics-service/models"
+	models "github.com/kamaal111/metrics-service/src/models"
 )
 
 func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
@@ -17,7 +17,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var payload MetricsPayload
+	var payload models.MetricsPayload
 	err = json.Unmarshal([]byte(body), &payload)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)

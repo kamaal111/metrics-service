@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/kamaal111/metrics-service/db"
-	"github.com/kamaal111/metrics-service/router"
+	"github.com/kamaal111/metrics-service/src/db"
+	"github.com/kamaal111/metrics-service/src/router"
 )
 
 func main() {

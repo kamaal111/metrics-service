@@ -6,7 +6,6 @@ type MetricModel struct {
 	Payload   MetricsPayload `pg:"payload"`
 }
 
-// MetricsPayload ...
 type MetricsPayload struct {
 	LocationActivityMetrics          LocationActivityMetrics          `json:"locationActivityMetrics,omitempty"`
 	CellularConditionMetrics         CellularConditionMetrics         `json:"cellularConditionMetrics,omitempty"`
