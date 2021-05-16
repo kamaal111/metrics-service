@@ -13,7 +13,9 @@ import (
 
 func Connect(dbPath string) *pg.DB {
 	options := &pg.Options{
-		User:     "postgres",
+		// TODO: Get this from ENV
+		User: "postgres",
+		// TODO: Get this from ENV
 		Password: "pass",
 		Addr:     fmt.Sprintf("%s:5432", dbPath),
 	}
@@ -34,6 +36,24 @@ func Connect(dbPath string) *pg.DB {
 	return pgDB
 }
 
+func GetOrCreateAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {
+	app, err := getAppByBundleIdentifier(pgDB, bundleIdentifier)
+	if err == pg.ErrNoRows {
+		app = models.AppsTable{
+			BundleIdentifier: bundleIdentifier,
+		}
+		err = app.Save(pgDB)
+		return app, err
+	}
+	return app, err
+}
+
+func getAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {
+	var app models.AppsTable
+	err := pgDB.Model((*models.AppsTable)(nil)).Where("bundle_identifier = ?", bundleIdentifier).Select(&app)
+	return app, err
+}
+
 func createSchema(pgDB *pg.DB) error {
 	err := createAppsTable(pgDB)
 	if err != nil {
@@ -50,7 +70,7 @@ func createAppsTable(pgDB *pg.DB) error {
 	options := &orm.CreateTableOptions{
 		IfNotExists: true,
 	}
-	err := pgDB.Model((*models.Apps)(nil)).CreateTable(options)
+	err := pgDB.Model((*models.AppsTable)(nil)).CreateTable(options)
 	return err
 }
 

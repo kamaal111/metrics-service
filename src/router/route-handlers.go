@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-pg/pg/v10"
+	"github.com/kamaal111/metrics-service/src/db"
+	"github.com/kamaal111/metrics-service/src/models"
 )
 
 func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
@@ -16,9 +18,27 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	_, err = validateCollectPayload(body)
+	payload, err := validateCollectPayload(body)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	app, err := db.GetOrCreateAppByBundleIdentifier(pgDB, payload.BundleIdentifier)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	metrics := models.MetricsTable{
+		AppVersion:      payload.AppVersion,
+		AppBuildVersion: payload.Payload.MetaData.AppBuildVersion,
+		Payload:         payload.Payload,
+		AppID:           app.ID,
+	}
+	err = metrics.Save(pgDB)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

@@ -2,14 +2,14 @@ package models
 
 import "github.com/go-pg/pg/v10"
 
-type Apps struct {
+type AppsTable struct {
 	tableName        struct{}        `pg:"apps"`
 	ID               int             `pg:"id,pk"`
 	BundleIdentifier string          `pg:"bundle_identifier,unique"`
 	Metrics          []*MetricsTable `pg:"metrics,rel:has-many"`
 }
 
-func (app *Apps) Save(pgDB *pg.DB) error {
+func (app *AppsTable) Save(pgDB *pg.DB) error {
 	_, err := pgDB.Model(app).Insert()
 	return err
 }
@@ -21,7 +21,7 @@ type MetricsTable struct {
 	AppBuildVersion string            `pg:"app_build_version"`
 	Payload         CollectionMetrics `pg:"payload"`
 	AppID           int               `pg:"app_id"`
-	App             *Apps             `pg:"app,rel:has-one"`
+	App             *AppsTable        `pg:"app,rel:has-one"`
 }
 
 func (metric *MetricsTable) Save(pgDB *pg.DB) error {
