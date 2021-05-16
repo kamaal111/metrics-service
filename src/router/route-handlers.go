@@ -6,8 +6,6 @@ import (
 	"net/http"
 
 	"github.com/go-pg/pg/v10"
-
-	"github.com/kamaal111/metrics-service/src/models"
 )
 
 func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
@@ -17,10 +15,10 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var payload models.CollectionPayload
-	err = json.Unmarshal([]byte(body), &payload)
+
+	_, err = validateCollectPayload(body)
 	if err != nil {
-		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		errorHandler(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
