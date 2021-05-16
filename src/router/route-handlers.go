@@ -17,7 +17,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var payload models.MetricsPayload
+	var payload models.CollectionPayload
 	err = json.Unmarshal([]byte(body), &payload)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)

@@ -15,11 +15,13 @@ func (app *Apps) Save(pgDB *pg.DB) error {
 }
 
 type MetricsTable struct {
-	tableName struct{}       `pg:"metrics"`
-	ID        int            `pg:"id,pk"`
-	Payload   MetricsPayload `pg:"payload"`
-	AppID     int            `pg:"app_id"`
-	App       *Apps          `pg:"app,rel:has-one"`
+	tableName       struct{}          `pg:"metrics"`
+	ID              int               `pg:"id,pk"`
+	AppVersion      string            `pg:"app_version"`
+	AppBuildVersion string            `pg:"app_build_version"`
+	Payload         CollectionMetrics `pg:"payload"`
+	AppID           int               `pg:"app_id"`
+	App             *Apps             `pg:"app,rel:has-one"`
 }
 
 func (metric *MetricsTable) Save(pgDB *pg.DB) error {
@@ -27,7 +29,13 @@ func (metric *MetricsTable) Save(pgDB *pg.DB) error {
 	return err
 }
 
-type MetricsPayload struct {
+type CollectionPayload struct {
+	BundleIdentifier string            `json:"bundle_identifier,omitempty"`
+	AppVersion       string            `json:"app_version,omitempty"`
+	Payload          CollectionMetrics `json:"payload"`
+}
+
+type CollectionMetrics struct {
 	LocationActivityMetrics          LocationActivityMetrics          `json:"locationActivityMetrics,omitempty"`
 	CellularConditionMetrics         CellularConditionMetrics         `json:"cellularConditionMetrics,omitempty"`
 	MetaData                         MetaData                         `json:"metaData,omitempty"`
