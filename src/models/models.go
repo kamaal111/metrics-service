@@ -16,12 +16,12 @@ func (app *AppsTable) Save(pgDB *pg.DB) error {
 
 type MetricsTable struct {
 	tableName       struct{}          `pg:"metrics"`
-	ID              int               `pg:"id,pk"`
-	AppVersion      string            `pg:"app_version"`
-	AppBuildVersion string            `pg:"app_build_version"`
-	Payload         collectionMetrics `pg:"payload"`
-	AppID           int               `pg:"app_id"`
-	App             *AppsTable        `pg:"app,rel:has-one"`
+	ID              int               `pg:"id,pk" json:"id"`
+	AppVersion      string            `pg:"app_version" json:"app_version"`
+	AppBuildVersion string            `pg:"app_build_version" json:"app_build_version"`
+	Payload         collectionMetrics `pg:"payload" json:"payload"`
+	AppID           int               `pg:"app_id" json:"app_id"`
+	App             *AppsTable        `pg:"app,rel:has-one" json:"app,omitempty"`
 }
 
 func (metric *MetricsTable) Save(pgDB *pg.DB) error {
