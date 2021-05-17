@@ -2,8 +2,8 @@ package router
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/go-pg/pg/v10"
@@ -17,8 +17,26 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log.Println(bundleIdentifier)
-	w.WriteHeader(http.StatusNoContent)
+
+	app, err := db.GetAppWithMetricsByBundleIdentifier(pgDB, bundleIdentifier)
+	if err == pg.ErrNoRows {
+		errorHandler(w, fmt.Sprintf("%s not found", bundleIdentifier), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	output, err := json.Marshal(app.Metrics)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.Write(output)
 }
 
 func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
