@@ -11,8 +11,8 @@ func HandleRequests(pgDB *pg.DB, port string) {
 	mux := http.NewServeMux()
 
 	mux.Handle("/", loggerMiddleware(http.HandlerFunc(rootHandler)))
-	mux.Handle("/collect", loggerMiddleware(restrictToHttpMethod(http.MethodPost, connectToDatabase(pgDB, collectHandler))))
-	mux.Handle("/metrics", loggerMiddleware(connectToDatabase(pgDB, metricsHandler)))
+	mux.Handle("/collect/", loggerMiddleware(restrictToHttpMethod(http.MethodPost, connectToDatabase(pgDB, collectHandler))))
+	mux.Handle("/metrics/", loggerMiddleware(connectToDatabase(pgDB, metricsHandler)))
 
 	log.Printf("Listening on %s\n", port)
 	err := http.ListenAndServe(port, mux)

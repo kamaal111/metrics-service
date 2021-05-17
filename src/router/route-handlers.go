@@ -4,11 +4,31 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/kamaal111/metrics-service/src/db"
 	"github.com/kamaal111/metrics-service/src/models"
 )
+
+func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
+	splittedURLPath := strings.FieldsFunc(r.URL.Path, func(c rune) bool {
+		return c == '/'
+	})
+	if len(splittedURLPath) < 2 {
+		errorHandler(w, "use app bundle identifier at the end of this url", http.StatusBadRequest)
+		return
+	}
+	bundleIdentifier := splittedURLPath[1]
+	splittedBundleIdentifier := strings.FieldsFunc(bundleIdentifier, func(c rune) bool {
+		return c == '.'
+	})
+	if len(splittedBundleIdentifier) < 2 {
+		errorHandler(w, "invalid bundle identifier user", http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
 
 func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	body, err := ioutil.ReadAll(r.Body)
@@ -42,10 +62,6 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
