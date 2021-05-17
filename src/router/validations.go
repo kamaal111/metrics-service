@@ -19,5 +19,8 @@ func validateCollectPayload(body []byte) (models.CollectionPayload, error) {
 	if payload.BundleIdentifier == "" {
 		return models.CollectionPayload{}, errors.New("bundle_identifier field is required")
 	}
+	if payload.Payload.MetaData.AppBuildVersion == "" {
+		return models.CollectionPayload{}, errors.New("payload.metaData.appBuildVersion field is required")
+	}
 	return payload, nil
 }
