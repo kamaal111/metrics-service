@@ -42,7 +42,10 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
