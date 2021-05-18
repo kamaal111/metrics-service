@@ -3,15 +3,20 @@ package models
 import "github.com/go-pg/pg/v10"
 
 type AppsTable struct {
-	tableName        struct{}        `pg:"apps"`
-	ID               int             `pg:"id,pk"`
-	BundleIdentifier string          `pg:"bundle_identifier,unique"`
-	Metrics          []*MetricsTable `pg:"metrics,rel:has-many"`
+	tableName        struct{} `pg:"apps"`
+	ID               int      `pg:"id,pk"`
+	BundleIdentifier string   `pg:"bundle_identifier,unique"`
 }
 
 func (app *AppsTable) Save(pgDB *pg.DB) error {
 	_, err := pgDB.Model(app).Insert()
 	return err
+}
+
+func (app *AppsTable) GetMetrics(pgDB *pg.DB) ([]MetricsTable, error) {
+	var metrics []MetricsTable
+	err := pgDB.Model(&metrics).Where("app_id = ?", app.ID).Select()
+	return metrics, err
 }
 
 type MetricsTable struct {
@@ -21,7 +26,6 @@ type MetricsTable struct {
 	AppBuildVersion string            `pg:"app_build_version" json:"app_build_version"`
 	Payload         collectionMetrics `pg:"payload" json:"payload"`
 	AppID           int               `pg:"app_id" json:"app_id"`
-	App             *AppsTable        `pg:"app,rel:has-one" json:"app,omitempty"`
 }
 
 func (metric *MetricsTable) Save(pgDB *pg.DB) error {

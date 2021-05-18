@@ -18,18 +18,22 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	app, err := db.GetAppWithMetricsByBundleIdentifier(pgDB, bundleIdentifier)
+	app, err := db.GetAppByBundleIdentifier(pgDB, bundleIdentifier)
 	if err == pg.ErrNoRows {
 		errorHandler(w, fmt.Sprintf("%s not found", bundleIdentifier), http.StatusNotFound)
 		return
+	} else if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	metrics, err := app.GetMetrics(pgDB)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	output, err := json.Marshal(app.Metrics)
+	output, err := json.Marshal(metrics)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return

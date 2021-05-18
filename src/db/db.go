@@ -37,7 +37,7 @@ func Connect(dbPath string) *pg.DB {
 }
 
 func GetOrCreateAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {
-	app, err := getAppByBundleIdentifier(pgDB, bundleIdentifier)
+	app, err := GetAppByBundleIdentifier(pgDB, bundleIdentifier)
 	if err == pg.ErrNoRows {
 		app = models.AppsTable{
 			BundleIdentifier: bundleIdentifier,
@@ -48,15 +48,9 @@ func GetOrCreateAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (mod
 	return app, err
 }
 
-func getAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {
+func GetAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {
 	var app models.AppsTable
 	err := pgDB.Model(&app).Where("bundle_identifier = ?", bundleIdentifier).Select()
-	return app, err
-}
-
-func GetAppWithMetricsByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {
-	var app models.AppsTable
-	err := pgDB.Model(&app).Where("bundle_identifier = ?", bundleIdentifier).Relation("Metrics").Select()
 	return app, err
 }
 
