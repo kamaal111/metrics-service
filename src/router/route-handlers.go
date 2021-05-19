@@ -1,9 +1,11 @@
 package router
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/go-pg/pg/v10"
@@ -12,6 +14,24 @@ import (
 )
 
 func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
+	apiToken, err := generateSecureToken(32)
+	stringToken := hex.EncodeToString(apiToken)
+	log.Println(stringToken)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	hashedApiToken, err := hashAndSalt(apiToken)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	isAuthorized, err := compareApiToken(hashedApiToken, apiToken)
+	if err != nil || !isAuthorized {
+		errorHandler(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	bundleIdentifier, err := getBundleIdentifierFromURLPath(r.URL.Path)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusBadRequest)

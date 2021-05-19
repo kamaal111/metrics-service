@@ -33,6 +33,7 @@ func Connect(dbPath string) *pg.DB {
 	}
 	log.Println("Successfully created database schemas")
 
+	// TODO: Make this global
 	return pgDB
 }
 
