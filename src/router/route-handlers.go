@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/go-pg/pg/v10"
 
@@ -14,6 +15,10 @@ import (
 )
 
 func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
+	if r.Header.Get("access_token") != os.Getenv("SECRET_TOKEN") && os.Getenv("SECRET_TOKEN") != "" {
+		errorHandler(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 	accessToken, err := generateSecureToken(32)
 	if err != nil {
 		utils.MLogger("something went wrong while generating secure token", http.StatusInternalServerError, err)

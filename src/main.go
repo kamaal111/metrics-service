@@ -18,6 +18,10 @@ func main() {
 	if PORT == "" {
 		PORT = "8080"
 	}
+	SECRET_TOKEN := os.Getenv("SECRET_TOKEN")
+	if SECRET_TOKEN == "" {
+		log.Fatalln("SECRET_TOKEN is undefined")
+	}
 
 	pgDB := db.Connect(PATH)
 
