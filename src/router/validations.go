@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/kamaal111/metrics-service/src/models"
+	"github.com/kamaal111/metrics-service/src/utils"
 )
 
 func processAccessToken(headerAccessToken string, appAccessToken string) (int, error) {
@@ -16,7 +17,7 @@ func processAccessToken(headerAccessToken string, appAccessToken string) (int, e
 	if !hasValidToken {
 		return http.StatusUnauthorized, errors.New("unauthorized")
 	} else if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while comparing hash", http.StatusInternalServerError, err)
 		return http.StatusInternalServerError, err
 	}
 	return http.StatusOK, nil

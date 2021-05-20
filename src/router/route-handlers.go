@@ -7,20 +7,22 @@ import (
 	"net/http"
 
 	"github.com/go-pg/pg/v10"
+
 	"github.com/kamaal111/metrics-service/src/db"
 	"github.com/kamaal111/metrics-service/src/models"
+	"github.com/kamaal111/metrics-service/src/utils"
 )
 
 func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	accessToken, err := generateSecureToken(32)
 	if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while generating secure token", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	hashedToken, err := hashAndSalt(accessToken)
 	if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while hashing and salting access token", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -44,13 +46,17 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if bundleIdentifier == "" {
+		errorHandler(w, "invalid bundle_identifier in path", http.StatusBadRequest)
+		return
+	}
 
 	app, err := db.GetAppByBundleIdentifier(pgDB, bundleIdentifier)
 	if err == pg.ErrNoRows {
 		errorHandler(w, fmt.Sprintf("%s not found", bundleIdentifier), http.StatusNotFound)
 		return
 	} else if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while getting app by bundle identifier", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -66,14 +72,14 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, "metrics not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while getting metrics from app", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	output, err := json.Marshal(metrics)
 	if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while marshalling metrics", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -101,7 +107,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, "app not found", http.StatusNotFound)
 		return
 	} else if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while getting app with bundle identifier", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -120,7 +126,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	}
 	err = metrics.Save(pgDB)
 	if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while saving metrics", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -136,7 +142,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	output, err := json.Marshal(response)
 	if err != nil {
-		// TODO: LOGGING HERE
+		utils.MLogger("something went wrong while marshaling response", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
