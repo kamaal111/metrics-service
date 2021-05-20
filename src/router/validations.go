@@ -13,7 +13,7 @@ func processAccessToken(headerAccessToken string, appAccessToken string) (int, e
 	if headerAccessToken == "" {
 		return http.StatusBadRequest, errors.New("access token not found")
 	}
-	hasValidToken, err := compareHashAndToken(appAccessToken, []byte(headerAccessToken))
+	hasValidToken, err := utils.CompareHashAndToken(appAccessToken, []byte(headerAccessToken))
 	if !hasValidToken {
 		return http.StatusUnauthorized, errors.New("unauthorized")
 	} else if err != nil {

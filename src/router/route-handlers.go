@@ -19,13 +19,13 @@ func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	accessToken, err := generateSecureToken(32)
+	accessToken, err := utils.GenerateSecureToken(32)
 	if err != nil {
 		utils.MLogger("something went wrong while generating secure token", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	hashedToken, err := hashAndSalt(accessToken)
+	hashedToken, err := utils.HashAndSalt(accessToken)
 	if err != nil {
 		utils.MLogger("something went wrong while hashing and salting access token", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
