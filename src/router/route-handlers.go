@@ -1,11 +1,9 @@
 package router
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/go-pg/pg/v10"
@@ -13,25 +11,34 @@ import (
 	"github.com/kamaal111/metrics-service/src/models"
 )
 
-func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
-	apiToken, err := generateSecureToken(32)
-	stringToken := hex.EncodeToString(apiToken)
-	log.Println(stringToken)
+func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
+	accessToken, err := generateSecureToken(32)
+	if err != nil {
+		// TODO: LOGGING HERE
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	hashedToken, err := hashAndSalt(accessToken)
+	if err != nil {
+		// TODO: LOGGING HERE
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response := struct {
+		AccessToken string `json:"access_token"`
+	}{
+		AccessToken: hashedToken,
+	}
+	output, err := json.Marshal(response)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	hashedApiToken, err := hashAndSalt(apiToken)
-	if err != nil {
-		errorHandler(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	isAuthorized, err := compareApiToken(hashedApiToken, apiToken)
-	if err != nil || !isAuthorized {
-		errorHandler(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
+	w.Header().Set("content-type", "application/json")
+	w.Write(output)
+}
 
+func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	bundleIdentifier, err := getBundleIdentifierFromURLPath(r.URL.Path)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusBadRequest)
@@ -43,18 +50,41 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, fmt.Sprintf("%s not found", bundleIdentifier), http.StatusNotFound)
 		return
 	} else if err != nil {
+		// TODO: LOGGING HERE
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	metrics, err := app.GetMetrics(pgDB)
+	accessToken := r.Header.Get("access_token")
+	if accessToken == "" {
+		errorHandler(w, "access_token not found in header", http.StatusBadRequest)
+		return
+	}
+	hasValidToken, err := compareHashAndToken(app.AccessToken, []byte(accessToken))
+	if !hasValidToken || err != nil {
+		errorHandler(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	accessTokenCode, err := processAccessToken(r.Header.Get("access_token"), app.AccessToken)
 	if err != nil {
+		errorHandler(w, err.Error(), accessTokenCode)
+		return
+	}
+
+	metrics, err := app.GetMetrics(pgDB)
+	if err == pg.ErrNoRows {
+		errorHandler(w, "metrics not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		// TODO: LOGGING HERE
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	output, err := json.Marshal(metrics)
 	if err != nil {
+		// TODO: LOGGING HERE
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -77,8 +107,12 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	app, err := db.GetOrCreateAppByBundleIdentifier(pgDB, payload.BundleIdentifier)
-	if err != nil {
+	app, err := db.GetAppByBundleIdentifier(pgDB, payload.BundleIdentifier)
+	if err == pg.ErrNoRows {
+		errorHandler(w, "app not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		// TODO: LOGGING HERE
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -91,6 +125,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	}
 	err = metrics.Save(pgDB)
 	if err != nil {
+		// TODO: LOGGING HERE
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -106,6 +141,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	output, err := json.Marshal(response)
 	if err != nil {
+		// TODO: LOGGING HERE
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

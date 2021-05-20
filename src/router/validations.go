@@ -3,9 +3,24 @@ package router
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 
 	"github.com/kamaal111/metrics-service/src/models"
 )
+
+func processAccessToken(headerAccessToken string, appAccessToken string) (int, error) {
+	if headerAccessToken == "" {
+		return http.StatusBadRequest, errors.New("access token not found")
+	}
+	hasValidToken, err := compareHashAndToken(appAccessToken, []byte(headerAccessToken))
+	if !hasValidToken {
+		return http.StatusUnauthorized, errors.New("unauthorized")
+	} else if err != nil {
+		// TODO: LOGGING HERE
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
+}
 
 func validateCollectPayload(body []byte) (models.CollectionPayload, error) {
 	var payload models.CollectionPayload

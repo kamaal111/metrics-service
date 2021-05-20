@@ -6,6 +6,7 @@ type AppsTable struct {
 	tableName        struct{} `pg:"apps"`
 	ID               int      `pg:"id,pk"`
 	BundleIdentifier string   `pg:"bundle_identifier,unique"`
+	AccessToken      string   `pg:"access_token"`
 }
 
 func (app *AppsTable) Save(pgDB *pg.DB) error {

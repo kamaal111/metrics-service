@@ -25,14 +25,10 @@ func hashAndSalt(bytes []byte) (string, error) {
 	return string(hash), nil
 }
 
-func compareApiToken(hashedApiToken string, plainApiToken []byte) (bool, error) {
-	byteHash := []byte(hashedApiToken)
-	err := bcrypt.CompareHashAndPassword(byteHash, plainApiToken)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+func compareHashAndToken(hashedToken string, plainToken []byte) (bool, error) {
+	byteHash := []byte(hashedToken)
+	err := bcrypt.CompareHashAndPassword(byteHash, plainToken)
+	return err == nil, err
 }
 
 func getBundleIdentifierFromURLPath(path string) (string, error) {
