@@ -34,9 +34,13 @@ func (metric *MetricsTable) Save(pgDB *pg.DB) error {
 	return err
 }
 
+type RegisterPayload struct {
+	BundleIdentifier string `json:"bundle_identifier"`
+}
+
 type CollectionPayload struct {
-	BundleIdentifier string            `json:"bundle_identifier,omitempty"`
-	AppVersion       string            `json:"app_version,omitempty"`
+	BundleIdentifier string            `json:"bundle_identifier"`
+	AppVersion       string            `json:"app_version"`
 	Payload          collectionMetrics `json:"payload"`
 }
 

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -19,28 +20,67 @@ func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		errorHandler(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var payload models.RegisterPayload
+	err = json.Unmarshal([]byte(body), &payload)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	bundleIdentifier, err := validateBundleIdentifier(payload.BundleIdentifier)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err = db.GetAppByBundleIdentifier(pgDB, bundleIdentifier)
+	if err != pg.ErrNoRows {
+		errorHandler(w, fmt.Sprintf("app with %s as bundle_identifier already exists", bundleIdentifier), http.StatusConflict)
+		return
+	}
+
 	accessToken, err := utils.GenerateSecureToken(32)
 	if err != nil {
 		utils.MLogger("something went wrong while generating secure token", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	hashedToken, err := utils.HashAndSalt(accessToken)
 	if err != nil {
 		utils.MLogger("something went wrong while hashing and salting access token", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	app := models.AppsTable{
+		BundleIdentifier: bundleIdentifier,
+		AccessToken:      hashedToken,
+	}
+	err = app.Save(pgDB)
+	if err != nil {
+		utils.MLogger("something went wrong while saving app", http.StatusInternalServerError, err)
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	response := struct {
 		AccessToken string `json:"access_token"`
 	}{
-		AccessToken: hashedToken,
+		AccessToken: hex.EncodeToString(accessToken),
 	}
+
 	output, err := json.Marshal(response)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("content-type", "application/json")
 	w.Write(output)
 }

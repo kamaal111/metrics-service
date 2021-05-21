@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/kamaal111/metrics-service/src/models"
 	"github.com/kamaal111/metrics-service/src/utils"
@@ -21,6 +22,19 @@ func processAccessToken(headerAccessToken string, appAccessToken string) (int, e
 		return http.StatusInternalServerError, err
 	}
 	return http.StatusOK, nil
+}
+
+func validateBundleIdentifier(bundleIdentifier string) (string, error) {
+	if bundleIdentifier == "" {
+		return "", errors.New("bundle_identifier is required")
+	}
+	splittedBundleIdentifier := strings.FieldsFunc(bundleIdentifier, func(c rune) bool {
+		return c == '.'
+	})
+	if len(splittedBundleIdentifier) < 2 {
+		return "", errors.New("invalid bundle identifier")
+	}
+	return bundleIdentifier, nil
 }
 
 func validateCollectPayload(body []byte) (models.CollectionPayload, error) {
