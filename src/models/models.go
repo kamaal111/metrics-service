@@ -25,7 +25,7 @@ type MetricsTable struct {
 	ID              int               `pg:"id,pk" json:"id"`
 	AppVersion      string            `pg:"app_version" json:"app_version"`
 	AppBuildVersion string            `pg:"app_build_version" json:"app_build_version"`
-	Payload         collectionMetrics `pg:"payload" json:"payload"`
+	Payload         CollectionMetrics `pg:"payload" json:"payload"`
 	AppID           int               `pg:"app_id" json:"app_id"`
 }
 
@@ -34,17 +34,7 @@ func (metric *MetricsTable) Save(pgDB *pg.DB) error {
 	return err
 }
 
-type RegisterPayload struct {
-	BundleIdentifier string `json:"bundle_identifier"`
-}
-
-type CollectionPayload struct {
-	BundleIdentifier string            `json:"bundle_identifier"`
-	AppVersion       string            `json:"app_version"`
-	Payload          collectionMetrics `json:"payload"`
-}
-
-type collectionMetrics struct {
+type CollectionMetrics struct {
 	LocationActivityMetrics          locationActivityMetrics          `json:"locationActivityMetrics,omitempty"`
 	CellularConditionMetrics         cellularConditionMetrics         `json:"cellularConditionMetrics,omitempty"`
 	MetaData                         MetaData                         `json:"metaData,omitempty"`

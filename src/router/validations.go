@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kamaal111/metrics-service/src/models"
 	"github.com/kamaal111/metrics-service/src/utils"
 )
 
@@ -37,20 +36,20 @@ func validateBundleIdentifier(bundleIdentifier string) (string, error) {
 	return bundleIdentifier, nil
 }
 
-func validateCollectPayload(body []byte) (models.CollectionPayload, error) {
-	var payload models.CollectionPayload
+func validateCollectPayload(body []byte) (collectionPayload, error) {
+	var payload collectionPayload
 	err := json.Unmarshal([]byte(body), &payload)
 	if err != nil {
-		return models.CollectionPayload{}, err
+		return collectionPayload{}, err
 	}
 	if payload.AppVersion == "" {
-		return models.CollectionPayload{}, errors.New("app_version field is required")
+		return collectionPayload{}, errors.New("app_version field is required")
 	}
 	if payload.BundleIdentifier == "" {
-		return models.CollectionPayload{}, errors.New("bundle_identifier field is required")
+		return collectionPayload{}, errors.New("bundle_identifier field is required")
 	}
 	if payload.Payload.MetaData.AppBuildVersion == "" {
-		return models.CollectionPayload{}, errors.New("payload.metaData.appBuildVersion field is required")
+		return collectionPayload{}, errors.New("payload.metaData.appBuildVersion field is required")
 	}
 	return payload, nil
 }
