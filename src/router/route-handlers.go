@@ -156,19 +156,21 @@ func collectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var metrics []models.MetricsTable
 	for _, metricsPayload := range payload.Payload {
-		metrics := models.MetricsTable{
+		metrics = append(metrics, models.MetricsTable{
 			AppVersion:      payload.AppVersion,
 			AppBuildVersion: metricsPayload.MetaData.AppBuildVersion,
 			Payload:         metricsPayload,
 			AppID:           app.ID,
-		}
-		err = metrics.Save(db.PGDatabase)
-		if err != nil {
-			utils.MLogger("something went wrong while saving metrics", http.StatusInternalServerError, err)
-			errorHandler(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
+	}
+
+	err = db.BulkSaveMetrics(db.PGDatabase, metrics)
+	if err != nil {
+		utils.MLogger("something went wrong while saving metrics", http.StatusInternalServerError, err)
+		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)

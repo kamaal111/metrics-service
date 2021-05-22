@@ -43,6 +43,11 @@ func Connect(dbPath string) {
 	}
 }
 
+func BulkSaveMetrics(pgDB *pg.DB, metrics []models.MetricsTable) error {
+	_, err := pgDB.Model(&metrics).Insert()
+	return err
+}
+
 func GetAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {
 	var app models.AppsTable
 	err := pgDB.Model(&app).Where("bundle_identifier = ?", bundleIdentifier).Select()
