@@ -1,7 +1,6 @@
 package router
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -66,7 +65,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	response := struct {
 		AccessToken string `json:"access_token"`
 	}{
-		AccessToken: hex.EncodeToString(accessToken),
+		AccessToken: accessToken,
 	}
 
 	output, err := json.Marshal(response)
