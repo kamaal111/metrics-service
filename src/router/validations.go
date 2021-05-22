@@ -36,20 +36,23 @@ func validateBundleIdentifier(bundleIdentifier string) (string, error) {
 	return bundleIdentifier, nil
 }
 
-func validateCollectPayload(body []byte) (collectionPayload, error) {
+func validateCollectPayload(body []byte) (collectionPayload, int, error) {
 	var payload collectionPayload
 	err := json.Unmarshal([]byte(body), &payload)
-	if err != nil {
-		return collectionPayload{}, err
-	}
 	if payload.AppVersion == "" {
-		return collectionPayload{}, errors.New("app_version field is required")
+		return collectionPayload{}, http.StatusBadRequest, errors.New("app_version field is required")
 	}
 	if payload.BundleIdentifier == "" {
-		return collectionPayload{}, errors.New("bundle_identifier field is required")
+		return collectionPayload{}, http.StatusBadRequest, errors.New("bundle_identifier field is required")
 	}
-	if payload.Payload.MetaData.AppBuildVersion == "" {
-		return collectionPayload{}, errors.New("payload.metaData.appBuildVersion field is required")
+	if len(payload.Payload) == 0 {
+		return collectionPayload{}, http.StatusBadRequest, errors.New("payload field is required")
 	}
-	return payload, nil
+	if payload.Payload[0].MetaData.AppBuildVersion == "" {
+		return collectionPayload{}, http.StatusBadRequest, errors.New("payload.metaData.appBuildVersion field is required")
+	}
+	if err != nil {
+		return collectionPayload{}, http.StatusInternalServerError, errors.New("something went wrong")
+	}
+	return payload, http.StatusOK, nil
 }

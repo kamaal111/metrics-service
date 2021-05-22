@@ -9,7 +9,7 @@ type registerPayload struct {
 }
 
 type collectionPayload struct {
-	BundleIdentifier string                   `json:"bundle_identifier"`
-	AppVersion       string                   `json:"app_version"`
-	Payload          models.CollectionMetrics `json:"payload"`
+	BundleIdentifier string                     `json:"bundle_identifier"`
+	AppVersion       string                     `json:"app_version"`
+	Payload          []models.CollectionMetrics `json:"payload"`
 }
