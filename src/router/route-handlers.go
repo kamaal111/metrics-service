@@ -14,23 +14,6 @@ import (
 	"github.com/kamaal111/metrics-service/src/utils"
 )
 
-func accessTokenHandler(w http.ResponseWriter, r *http.Request) {
-	response := struct {
-		Hello string `json:"hello"`
-	}{
-		Hello: "world",
-	}
-
-	output, err := json.Marshal(response)
-	if err != nil {
-		errorHandler(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("content-type", "application/json")
-	w.Write(output)
-}
-
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
