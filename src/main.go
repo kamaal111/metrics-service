@@ -10,10 +10,6 @@ import (
 )
 
 func main() {
-	PATH := os.Getenv("APP_PATH")
-	if PATH == "" {
-		PATH = "127.0.0.1"
-	}
 	PORT := os.Getenv("APP_PORT")
 	if PORT == "" {
 		PORT = "8080"
@@ -22,6 +18,7 @@ func main() {
 	if SECRET_TOKEN == "" {
 		log.Fatalln("SECRET_TOKEN is undefined")
 	}
+	PATH := os.Getenv("APP_PATH")
 
 	db.Connect(PATH)
 
