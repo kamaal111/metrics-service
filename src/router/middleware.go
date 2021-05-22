@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/go-pg/pg/v10"
 )
 
 func restrictToHttpMethod(method string, next http.Handler) http.Handler {
@@ -17,13 +15,6 @@ func restrictToHttpMethod(method string, next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
-}
-
-func connectToDatabase(pgDB *pg.DB, f func(w http.ResponseWriter, r *http.Request, pgDB *pg.DB)) http.Handler {
-	funcToPass := func(w http.ResponseWriter, r *http.Request) {
-		f(w, r, pgDB)
-	}
-	return http.HandlerFunc(funcToPass)
 }
 
 func loggerMiddleware(next http.Handler) http.Handler {

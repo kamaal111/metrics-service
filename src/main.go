@@ -23,11 +23,11 @@ func main() {
 		log.Fatalln("SECRET_TOKEN is undefined")
 	}
 
-	pgDB := db.Connect(PATH)
+	db.Connect(PATH)
 
-	router.HandleRequests(pgDB, fmt.Sprintf("%s:%s", PATH, PORT))
+	router.HandleRequests(fmt.Sprintf("%s:%s", PATH, PORT))
 
-	err := pgDB.Close()
+	err := db.PGDatabase.Close()
 	if err != nil {
 		log.Fatal(fmt.Errorf("error while closing the database connection, reason: %v\n", err))
 	}

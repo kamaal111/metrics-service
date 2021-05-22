@@ -11,7 +11,9 @@ import (
 	"github.com/kamaal111/metrics-service/src/models"
 )
 
-func Connect(dbPath string) *pg.DB {
+var PGDatabase *pg.DB
+
+func Connect(dbPath string) {
 	options := &pg.Options{
 		// TODO: Get this from ENV
 		User: "postgres",
@@ -20,21 +22,17 @@ func Connect(dbPath string) *pg.DB {
 		Addr:     fmt.Sprintf("%s:5432", dbPath),
 	}
 
-	pgDB := pg.Connect(options)
-	if pgDB == nil {
+	PGDatabase = pg.Connect(options)
+	if PGDatabase == nil {
 		log.Fatal(errors.New("failed to connect to database"))
 	}
 
 	log.Println("Connection to database successful.")
 
-	err := createSchema(pgDB)
+	err := createSchema(PGDatabase)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Successfully created database schemas")
-
-	// TODO: Make this global
-	return pgDB
 }
 
 func GetAppByBundleIdentifier(pgDB *pg.DB, bundleIdentifier string) (models.AppsTable, error) {

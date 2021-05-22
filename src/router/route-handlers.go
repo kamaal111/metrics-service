@@ -15,7 +15,7 @@ import (
 	"github.com/kamaal111/metrics-service/src/utils"
 )
 
-func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
+func registerHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("access_token") != os.Getenv("SECRET_TOKEN") && os.Getenv("SECRET_TOKEN") != "" {
 		errorHandler(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -39,7 +39,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	_, err = db.GetAppByBundleIdentifier(pgDB, bundleIdentifier)
+	_, err = db.GetAppByBundleIdentifier(db.PGDatabase, bundleIdentifier)
 	if err != pg.ErrNoRows {
 		errorHandler(w, fmt.Sprintf("app with %s as bundle_identifier already exists", bundleIdentifier), http.StatusConflict)
 		return
@@ -62,7 +62,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		BundleIdentifier: bundleIdentifier,
 		AccessToken:      hashedToken,
 	}
-	err = app.Save(pgDB)
+	err = app.Save(db.PGDatabase)
 	if err != nil {
 		utils.MLogger("something went wrong while saving app", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
@@ -85,7 +85,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	w.Write(output)
 }
 
-func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
+func metricsHandler(w http.ResponseWriter, r *http.Request) {
 	bundleIdentifier, err := getBundleIdentifierFromURLPath(r.URL.Path)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusBadRequest)
@@ -96,7 +96,7 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	app, err := db.GetAppByBundleIdentifier(pgDB, bundleIdentifier)
+	app, err := db.GetAppByBundleIdentifier(db.PGDatabase, bundleIdentifier)
 	if err == pg.ErrNoRows {
 		errorHandler(w, fmt.Sprintf("%s not found", bundleIdentifier), http.StatusNotFound)
 		return
@@ -112,7 +112,7 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	metrics, err := app.GetMetrics(pgDB)
+	metrics, err := app.GetMetrics(db.PGDatabase)
 	if err == pg.ErrNoRows {
 		errorHandler(w, "metrics not found", http.StatusNotFound)
 		return
@@ -133,7 +133,7 @@ func metricsHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 	w.Write(output)
 }
 
-func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
+func collectHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -147,7 +147,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		return
 	}
 
-	app, err := db.GetAppByBundleIdentifier(pgDB, payload.BundleIdentifier)
+	app, err := db.GetAppByBundleIdentifier(db.PGDatabase, payload.BundleIdentifier)
 	if err == pg.ErrNoRows {
 		errorHandler(w, "app not found", http.StatusNotFound)
 		return
@@ -169,7 +169,7 @@ func collectHandler(w http.ResponseWriter, r *http.Request, pgDB *pg.DB) {
 		Payload:         payload.Payload,
 		AppID:           app.ID,
 	}
-	err = metrics.Save(pgDB)
+	err = metrics.Save(db.PGDatabase)
 	if err != nil {
 		utils.MLogger("something went wrong while saving metrics", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
