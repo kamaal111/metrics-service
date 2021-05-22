@@ -46,22 +46,6 @@ func Connect(dbPath string) {
 	}
 }
 
-type dbLogger struct{}
-
-func (d dbLogger) BeforeQuery(c context.Context, q *pg.QueryEvent) (context.Context, error) {
-	return c, nil
-}
-
-func (d dbLogger) AfterQuery(c context.Context, q *pg.QueryEvent) error {
-	query, err := q.UnformattedQuery()
-	if err != nil {
-		log.Printf("error %s\n", err.Error())
-		return nil
-	}
-	log.Println(string(query))
-	return nil
-}
-
 func BulkSaveMetrics(pgDB *pg.DB, metrics []models.MetricsTable) error {
 	_, err := pgDB.Model(&metrics).Insert()
 	return err
@@ -99,4 +83,20 @@ func createMetricsTable(pgDB *pg.DB) error {
 	}
 	err := pgDB.Model((*models.MetricsTable)(nil)).CreateTable(options)
 	return err
+}
+
+type dbLogger struct{}
+
+func (d dbLogger) BeforeQuery(c context.Context, q *pg.QueryEvent) (context.Context, error) {
+	return c, nil
+}
+
+func (d dbLogger) AfterQuery(c context.Context, q *pg.QueryEvent) error {
+	query, err := q.UnformattedQuery()
+	if err != nil {
+		log.Printf("error %s\n", err.Error())
+		return nil
+	}
+	log.Println(string(query))
+	return nil
 }
