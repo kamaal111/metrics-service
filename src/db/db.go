@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -14,11 +15,18 @@ import (
 var PGDatabase *pg.DB
 
 func Connect(dbPath string) {
+	POSTGRES_USER := os.Getenv("POSTGRES_USER")
+	if POSTGRES_USER == "" {
+		log.Fatalln("POSTGRES_USER is undefined")
+	}
+	POSTGRES_PASSWORD := os.Getenv("POSTGRES_PASSWORD")
+	if POSTGRES_PASSWORD == "" {
+		log.Fatalln("POSTGRES_PASSWORD is undefined")
+	}
+
 	options := &pg.Options{
-		// TODO: Get this from ENV
-		User: "postgres",
-		// TODO: Get this from ENV
-		Password: "pass",
+		User:     POSTGRES_USER,
+		Password: POSTGRES_PASSWORD,
 		Addr:     fmt.Sprintf("%s:5432", dbPath),
 	}
 
