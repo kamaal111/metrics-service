@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -35,12 +36,30 @@ func Connect(dbPath string) {
 		log.Fatal(errors.New("failed to connect to database"))
 	}
 
+	PGDatabase.AddQueryHook(dbLogger{})
+
 	log.Println("Connection to database successful.")
 
 	err := createSchema(PGDatabase)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+type dbLogger struct{}
+
+func (d dbLogger) BeforeQuery(c context.Context, q *pg.QueryEvent) (context.Context, error) {
+	return c, nil
+}
+
+func (d dbLogger) AfterQuery(c context.Context, q *pg.QueryEvent) error {
+	query, err := q.UnformattedQuery()
+	if err != nil {
+		log.Printf("error %s\n", err.Error())
+		return nil
+	}
+	log.Println(string(query))
+	return nil
 }
 
 func BulkSaveMetrics(pgDB *pg.DB, metrics []models.MetricsTable) error {
