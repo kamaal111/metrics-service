@@ -15,7 +15,7 @@ import (
 
 var PGDatabase *pg.DB
 
-func Connect(dbPath string) {
+func Connect() {
 	POSTGRES_USER := os.Getenv("POSTGRES_USER")
 	if POSTGRES_USER == "" {
 		log.Fatalln("POSTGRES_USER is undefined")
@@ -24,11 +24,12 @@ func Connect(dbPath string) {
 	if POSTGRES_PASSWORD == "" {
 		log.Fatalln("POSTGRES_PASSWORD is undefined")
 	}
+	DB_PATH := os.Getenv("DB_PATH")
 
 	options := &pg.Options{
 		User:     POSTGRES_USER,
 		Password: POSTGRES_PASSWORD,
-		Addr:     fmt.Sprintf("%s:5432", dbPath),
+		Addr:     fmt.Sprintf("%s:5432", DB_PATH),
 	}
 
 	PGDatabase = pg.Connect(options)

@@ -20,7 +20,7 @@ func main() {
 	}
 	PATH := os.Getenv("APP_PATH")
 
-	db.Connect(PATH)
+	db.Connect()
 
 	router.HandleRequests(fmt.Sprintf("%s:%s", PATH, PORT))
 
