@@ -24,12 +24,16 @@ func Connect() {
 	if POSTGRES_PASSWORD == "" {
 		log.Fatalln("POSTGRES_PASSWORD is undefined")
 	}
+	DP_PORT := os.Getenv("DP_PORT")
+	if DP_PORT == "" {
+		log.Fatalln("DP_PORT is undefined")
+	}
 	DB_PATH := os.Getenv("DB_PATH")
 
 	options := &pg.Options{
 		User:     POSTGRES_USER,
 		Password: POSTGRES_PASSWORD,
-		Addr:     fmt.Sprintf("%s:5432", DB_PATH),
+		Addr:     fmt.Sprintf("%s:%s", DB_PATH, DP_PORT),
 	}
 
 	PGDatabase = pg.Connect(options)
