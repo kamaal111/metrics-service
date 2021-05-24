@@ -30,10 +30,22 @@ func Connect() {
 	}
 	DB_PATH := os.Getenv("DB_PATH")
 
-	options := &pg.Options{
-		User:     POSTGRES_USER,
-		Password: POSTGRES_PASSWORD,
-		Addr:     fmt.Sprintf("%s:%s", DB_PATH, DP_PORT),
+	var err error
+	var options *pg.Options
+
+	DATABASE_URL := os.Getenv("DATABASE_URL")
+	if DATABASE_URL != "" {
+		parsedDBUrl, err := pg.ParseURL(DATABASE_URL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		options = parsedDBUrl
+	} else {
+		options = &pg.Options{
+			User:     POSTGRES_USER,
+			Password: POSTGRES_PASSWORD,
+			Addr:     fmt.Sprintf("%s:%s", DB_PATH, DP_PORT),
+		}
 	}
 
 	PGDatabase = pg.Connect(options)
@@ -45,7 +57,7 @@ func Connect() {
 
 	log.Println("Connection to database successful.")
 
-	err := createSchema(PGDatabase)
+	err = createSchema(PGDatabase)
 	if err != nil {
 		log.Fatal(err)
 	}
