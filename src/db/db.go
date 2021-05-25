@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 
@@ -16,36 +15,33 @@ import (
 var PGDatabase *pg.DB
 
 func Connect() {
-	POSTGRES_USER := os.Getenv("POSTGRES_USER")
-	if POSTGRES_USER == "" {
-		log.Fatalln("POSTGRES_USER is undefined")
-	}
-	POSTGRES_PASSWORD := os.Getenv("POSTGRES_PASSWORD")
-	if POSTGRES_PASSWORD == "" {
-		log.Fatalln("POSTGRES_PASSWORD is undefined")
-	}
-	DP_PORT := os.Getenv("DP_PORT")
-	if DP_PORT == "" {
-		log.Fatalln("DP_PORT is undefined")
-	}
-	DB_PATH := os.Getenv("DB_PATH")
-
 	var err error
 	var options *pg.Options
 
 	DATABASE_URL := os.Getenv("DATABASE_URL")
 	if DATABASE_URL != "" {
-		parsedDBUrl, err := pg.ParseURL(DATABASE_URL)
+		options, err = pg.ParseURL(DATABASE_URL)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		options = parsedDBUrl
 	} else {
+		POSTGRES_USER := os.Getenv("POSTGRES_USER")
+		if POSTGRES_USER == "" {
+			log.Fatalln("POSTGRES_USER is undefined")
+		}
+		POSTGRES_PASSWORD := os.Getenv("POSTGRES_PASSWORD")
+		if POSTGRES_PASSWORD == "" {
+			log.Fatalln("POSTGRES_PASSWORD is undefined")
+		}
+
 		options = &pg.Options{
 			User:     POSTGRES_USER,
 			Password: POSTGRES_PASSWORD,
-			Addr:     fmt.Sprintf("%s:%s", DB_PATH, DP_PORT),
 		}
+	}
+
+	if options == nil {
+		log.Fatal(errors.New("failed to set database options"))
 	}
 
 	PGDatabase = pg.Connect(options)
