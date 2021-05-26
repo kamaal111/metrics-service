@@ -30,9 +30,20 @@ func restrictToHttpMethod(method string, next http.Handler) http.Handler {
 
 func loggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		observer := &responseObserver{ResponseWriter: w}
 		start := time.Now()
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(observer, r)
 		elapsed := time.Since(start)
-		log.Printf("%s: %s in %s\n", r.Method, r.URL.Path, elapsed)
+		log.Printf("%d %s: %s in %s\n", observer.status, r.Method, r.URL.Path, elapsed)
 	})
+}
+
+type responseObserver struct {
+	http.ResponseWriter
+	status int
+}
+
+func (o *responseObserver) WriteHeader(code int) {
+	o.ResponseWriter.WriteHeader(code)
+	o.status = code
 }
