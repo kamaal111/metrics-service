@@ -9,8 +9,8 @@ func getBundleIdentifierFromURLPath(path string) (string, error) {
 	splittedURLPath := strings.FieldsFunc(path, func(c rune) bool {
 		return c == '/'
 	})
-	if len(splittedURLPath) < 2 {
+	if len(splittedURLPath) < 3 {
 		return "", errors.New("use app bundle identifier at the end of this url")
 	}
-	return validateBundleIdentifier(splittedURLPath[1])
+	return validateBundleIdentifier(splittedURLPath[2])
 }
