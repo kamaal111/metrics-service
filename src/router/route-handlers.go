@@ -105,6 +105,13 @@ func metricsDataHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get version number from url path
+	// Check if valid
+	// If valid
+	// -> Use in query
+	// Else
+	// -> Don't
+
 	metrics, err := app.GetMetrics(db.PGDatabase)
 	if err == pg.ErrNoRows {
 		errorHandler(w, "metrics not found", http.StatusNotFound)
