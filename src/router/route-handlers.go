@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/go-pg/pg/v10"
 
@@ -107,11 +108,19 @@ func metricsDataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	validMetricsQueries := make(map[string]string)
-	appVersionStrings, okQuery := r.URL.Query()["app_version"]
+	urlQuery := r.URL.Query()
+	appVersionStrings, okQuery := urlQuery["app_version"]
 	if okQuery && len(appVersionStrings) > 0 {
 		appVersion, err := utils.ParseStringToAPIVersion(appVersionStrings[0])
 		if err == nil {
 			validMetricsQueries["app_version"] = appVersion.ToString()
+		}
+	}
+	appBuildStrings, okQuery := urlQuery["build"]
+	if okQuery && len(appBuildStrings) > 0 {
+		appBuild, err := strconv.Atoi(appBuildStrings[0])
+		if err == nil {
+			validMetricsQueries["app_build_version"] = strconv.Itoa(appBuild)
 		}
 	}
 
