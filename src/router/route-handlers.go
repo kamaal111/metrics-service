@@ -75,6 +75,7 @@ func metricsRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(output)
 }
 
@@ -105,14 +106,16 @@ func metricsDataHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get version number from url path
-	// Check if valid
-	// If valid
-	// -> Use in query
-	// Else
-	// -> Don't
+	validMetricsQueries := make(map[string]string)
+	appVersionStrings, okQuery := r.URL.Query()["app_version"]
+	if okQuery && len(appVersionStrings) > 0 {
+		appVersion, err := utils.ParseStringToAPIVersion(appVersionStrings[0])
+		if err == nil {
+			validMetricsQueries["app_version"] = appVersion.ToString()
+		}
+	}
 
-	metrics, err := app.GetMetrics(db.PGDatabase)
+	metrics, err := app.GetMetrics(db.PGDatabase, validMetricsQueries)
 	if err == pg.ErrNoRows {
 		errorHandler(w, "metrics not found", http.StatusNotFound)
 		return
@@ -120,6 +123,10 @@ func metricsDataHandler(w http.ResponseWriter, r *http.Request) {
 		utils.MLogger("something went wrong while getting metrics from app", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	if len(metrics) < 1 {
+		metrics = []models.MetricsTable{}
 	}
 
 	output, err := json.Marshal(metrics)
@@ -130,6 +137,7 @@ func metricsDataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(output)
 }
 

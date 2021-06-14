@@ -1,7 +1,10 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 )
 
 type AppsTable struct {
@@ -16,8 +19,16 @@ func (app *AppsTable) Save(pgDB *pg.DB) error {
 	return err
 }
 
-func (app *AppsTable) GetMetrics(pgDB *pg.DB) ([]MetricsTable, error) {
+func (app *AppsTable) GetMetrics(pgDB *pg.DB, queries map[string]string) ([]MetricsTable, error) {
 	var metrics []MetricsTable
-	err := pgDB.Model(&metrics).Where("app_id = ?", app.ID).Select()
+	startingQuery := pgDB.Model(&metrics).Where("app_id = ?", app.ID)
+	for queryKey, queryValue := range queries {
+		startingQuery = addWhereQuery(startingQuery, queryKey, queryValue)
+	}
+	err := startingQuery.Select()
 	return metrics, err
+}
+
+func addWhereQuery(query *orm.Query, whereQueryKey string, whereQueryValue string) *orm.Query {
+	return query.Where(fmt.Sprintf("%s = ?", whereQueryKey), whereQueryValue)
 }
