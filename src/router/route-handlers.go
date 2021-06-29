@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/go-pg/pg/v10"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/kamaal111/metrics-service/src/utils"
 )
 
-func registerHandler(w http.ResponseWriter, r *http.Request) {
+func metricsRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -75,10 +76,11 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(output)
 }
 
-func metricsHandler(w http.ResponseWriter, r *http.Request) {
+func metricsDataHandler(w http.ResponseWriter, r *http.Request) {
 	bundleIdentifier, err := getBundleIdentifierFromURLPath(r.URL.Path)
 	if err != nil {
 		errorHandler(w, err.Error(), http.StatusBadRequest)
@@ -105,7 +107,24 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metrics, err := app.GetMetrics(db.PGDatabase)
+	validMetricsQueries := make(map[string]string)
+	urlQuery := r.URL.Query()
+	appVersionStrings, okQuery := urlQuery["app_version"]
+	if okQuery && len(appVersionStrings) > 0 {
+		appVersion, err := utils.ParseStringToAPIVersion(appVersionStrings[0])
+		if err == nil {
+			validMetricsQueries["app_version"] = appVersion.ToString()
+		}
+	}
+	appBuildStrings, okQuery := urlQuery["build"]
+	if okQuery && len(appBuildStrings) > 0 {
+		appBuild, err := strconv.Atoi(appBuildStrings[0])
+		if err == nil {
+			validMetricsQueries["app_build_version"] = strconv.Itoa(appBuild)
+		}
+	}
+
+	metrics, err := app.GetMetrics(db.PGDatabase, validMetricsQueries)
 	if err == pg.ErrNoRows {
 		errorHandler(w, "metrics not found", http.StatusNotFound)
 		return
@@ -113,6 +132,10 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) {
 		utils.MLogger("something went wrong while getting metrics from app", http.StatusInternalServerError, err)
 		errorHandler(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	if len(metrics) < 1 {
+		metrics = []models.MetricsTable{}
 	}
 
 	output, err := json.Marshal(metrics)
@@ -123,10 +146,11 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(output)
 }
 
-func collectHandler(w http.ResponseWriter, r *http.Request) {
+func metricsCollectHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -178,9 +202,11 @@ func collectHandler(w http.ResponseWriter, r *http.Request) {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	response := struct {
-		Hello string `json:"Hello"`
+		Hello   string `json:"hello"`
+		Message string `json:"message"`
 	}{
-		Hello: "Welcome",
+		Hello:   "welcome",
+		Message: "This endpoint might not exist, but anyway welcome",
 	}
 	output, err := json.Marshal(response)
 	if err != nil {

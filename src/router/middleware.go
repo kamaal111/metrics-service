@@ -6,7 +6,30 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/kamaal111/metrics-service/src/models"
+	"github.com/kamaal111/metrics-service/src/utils"
 )
+
+func withDeprecateEndpoint(fromVersion models.APIVersion, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headerVersionString := r.Header.Get("version")
+		if headerVersionString == "" {
+			// TODO: Deprecate this
+			headerVersionString = "1.0"
+		}
+		headerVersion, err := utils.ParseStringToAPIVersion(headerVersionString)
+		if err != nil {
+			errorHandler(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if headerVersion.IsHigherThan(fromVersion) {
+			errorHandler(w, "this endpoint has been deprecated", http.StatusGone)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
 
 func apiKeyRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
