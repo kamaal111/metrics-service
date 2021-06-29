@@ -7,10 +7,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/kamaal111/metrics-service/src/models"
 	"github.com/kamaal111/metrics-service/src/utils"
 )
 
-func withDeprecateEndpoint(versionString string, next http.Handler) http.Handler {
+func withDeprecateEndpoint(fromVersion models.APIVersion, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerVersionString := r.Header.Get("version")
 		if headerVersionString == "" {
@@ -22,12 +23,7 @@ func withDeprecateEndpoint(versionString string, next http.Handler) http.Handler
 			errorHandler(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		version, err := utils.ParseStringToAPIVersion(versionString)
-		if err != nil {
-			errorHandler(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if headerVersion.IsHigherThan(version) {
+		if headerVersion.IsHigherThan(fromVersion) {
 			errorHandler(w, "this endpoint has been deprecated", http.StatusGone)
 			return
 		}
