@@ -2,6 +2,15 @@ package models
 
 import "fmt"
 
+var (
+	// - Get data endpoints
+	// - Adding metrics prefix to endpoints
+	VERSION_1_1_0 = APIVersion{1, 1, 0}
+
+	// - Initial release
+	VERSION_1_0_0 = APIVersion{1, 0, 0}
+)
+
 type APIVersion struct {
 	Major int
 	Minor int
