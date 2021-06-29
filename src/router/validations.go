@@ -13,15 +13,13 @@ func processAccessToken(headerAccessToken string, appAccessToken string) (int, e
 	if headerAccessToken == "" {
 		return http.StatusBadRequest, errors.New("access token not found")
 	}
-	// TODO: PUT THIS BACK WHEN FINISHED
-	// hasValidToken, err := utils.CompareHashAndToken(appAccessToken, headerAccessToken)
-	// if !hasValidToken {
-	// 	return http.StatusUnauthorized, errors.New("unauthorized")
-	// } else
-	// if err != nil {
-	// 	utils.MLogger("something went wrong while comparing hash", http.StatusInternalServerError, err)
-	// 	return http.StatusInternalServerError, err
-	// }
+	hasValidToken, err := utils.CompareHashAndToken(appAccessToken, headerAccessToken)
+	if !hasValidToken {
+		return http.StatusUnauthorized, errors.New("unauthorized")
+	} else if err != nil {
+		utils.MLogger("something went wrong while comparing hash", http.StatusInternalServerError, err)
+		return http.StatusInternalServerError, err
+	}
 	return http.StatusOK, nil
 }
 
