@@ -6,11 +6,11 @@ import (
 )
 
 func getBundleIdentifierFromURLPath(path string) (string, error) {
-	splittedURLPath := strings.FieldsFunc(path, func(c rune) bool {
-		return c == '/'
+	splittedURLPath := strings.FieldsFunc(path, func(r rune) bool {
+		return r == '/'
 	})
-	if len(splittedURLPath) < 2 {
-		return "", errors.New("use app bundle identifier at the end of this url")
+	if len(splittedURLPath) < 3 {
+		return "", errors.New("no bundle identifier defined")
 	}
-	return validateBundleIdentifier(splittedURLPath[1])
+	return validateBundleIdentifier(splittedURLPath[2])
 }

@@ -39,9 +39,17 @@ func validateBundleIdentifier(bundleIdentifier string) (string, error) {
 func validateCollectPayload(body []byte) (collectionPayload, int, error) {
 	var payload collectionPayload
 	err := json.Unmarshal([]byte(body), &payload)
+	if err != nil {
+		return collectionPayload{}, http.StatusInternalServerError, errors.New("something went wrong")
+	}
 	if payload.AppVersion == "" {
 		return collectionPayload{}, http.StatusBadRequest, errors.New("app_version field is required")
 	}
+	appVersion, err := utils.ParseStringToAPIVersion(payload.AppVersion)
+	if err != nil {
+		return collectionPayload{}, http.StatusBadRequest, err
+	}
+	payload.AppVersion = appVersion.ToString()
 	if payload.BundleIdentifier == "" {
 		return collectionPayload{}, http.StatusBadRequest, errors.New("bundle_identifier field is required")
 	}
@@ -51,8 +59,6 @@ func validateCollectPayload(body []byte) (collectionPayload, int, error) {
 	if payload.Payload[0].MetaData.AppBuildVersion == "" {
 		return collectionPayload{}, http.StatusBadRequest, errors.New("payload.metaData.appBuildVersion field is required")
 	}
-	if err != nil {
-		return collectionPayload{}, http.StatusInternalServerError, errors.New("something went wrong")
-	}
+
 	return payload, http.StatusOK, nil
 }
