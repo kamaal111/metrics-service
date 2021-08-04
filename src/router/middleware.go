@@ -13,12 +13,7 @@ import (
 
 func withDeprecateEndpoint(fromVersion models.APIVersion, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		headerVersionString := r.Header.Get("version")
-		if headerVersionString == "" {
-			// TODO: Deprecate this
-			headerVersionString = "1.0"
-		}
-		headerVersion, err := utils.ParseStringToAPIVersion(headerVersionString)
+		headerVersion, err := utils.GetAPIVersionFromRequest(r)
 		if err != nil {
 			errorHandler(w, err.Error(), http.StatusBadRequest)
 			return
