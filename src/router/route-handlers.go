@@ -46,16 +46,32 @@ func metricsRegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedToken, err := utils.HashAndSalt(accessToken)
+	headerVersion, err := utils.GetAPIVersionFromRequest(r)
 	if err != nil {
-		utils.MLogger("something went wrong while hashing and salting access token", http.StatusInternalServerError, err)
-		errorHandler(w, err.Error(), http.StatusInternalServerError)
+		errorHandler(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	app := models.AppsTable{
-		BundleIdentifier: bundleIdentifier,
-		AccessToken:      hashedToken,
+
+	var app models.AppsTable
+	// TODO: Make this less than
+	if !models.VERSION_2_0_0.IsHigherOrEqualTo(headerVersion) {
+		hashedToken, err := utils.HashAndSalt(accessToken)
+		if err != nil {
+			utils.MLogger("something went wrong while hashing and salting access token", http.StatusInternalServerError, err)
+			errorHandler(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		app = models.AppsTable{
+			BundleIdentifier: bundleIdentifier,
+			AccessToken:      hashedToken,
+		}
+	} else {
+		app = models.AppsTable{
+			BundleIdentifier: bundleIdentifier,
+			AccessToken:      accessToken,
+		}
 	}
+
 	err = app.Save(db.PGDatabase)
 	if err != nil {
 		utils.MLogger("something went wrong while saving app", http.StatusInternalServerError, err)
