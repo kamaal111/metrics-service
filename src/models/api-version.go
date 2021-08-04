@@ -33,6 +33,12 @@ func (version *APIVersion) IsHigherOrEqualTo(comparisionVersion APIVersion) bool
 		version.Patch == comparisionVersion.Patch)
 }
 
+func (version *APIVersion) IsLessThan(comparisionVersion APIVersion) bool {
+	return version.Major < comparisionVersion.Major ||
+		version.Minor < comparisionVersion.Minor ||
+		version.Patch < comparisionVersion.Patch
+}
+
 func (version *APIVersion) ToString() string {
 	return fmt.Sprintf("%d.%d.%d", version.Major, version.Minor, version.Patch)
 }

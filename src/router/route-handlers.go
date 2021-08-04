@@ -53,8 +53,7 @@ func metricsRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var app models.AppsTable
-	// TODO: Make this less than
-	if !models.VERSION_2_0_0.IsHigherOrEqualTo(headerVersion) {
+	if headerVersion.IsLessThan(models.VERSION_2_0_0) {
 		hashedToken, err := utils.HashAndSalt(accessToken)
 		if err != nil {
 			utils.MLogger("something went wrong while hashing and salting access token", http.StatusInternalServerError, err)
@@ -117,7 +116,13 @@ func metricsDataHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessTokenCode, err := processAccessToken(r.Header.Get("access_token"), app.AccessToken)
+	apiVersion, err := utils.GetAPIVersionFromRequest(r)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	accessTokenCode, err := processAccessToken(r.Header.Get("access_token"), app.AccessToken, apiVersion)
 	if err != nil {
 		errorHandler(w, err.Error(), accessTokenCode)
 		return
@@ -190,7 +195,12 @@ func metricsCollectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessTokenCode, err := processAccessToken(r.Header.Get("access_token"), app.AccessToken)
+	apiVersion, err := utils.GetAPIVersionFromRequest(r)
+	if err != nil {
+		errorHandler(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	accessTokenCode, err := processAccessToken(r.Header.Get("access_token"), app.AccessToken, apiVersion)
 	if err != nil {
 		errorHandler(w, err.Error(), accessTokenCode)
 		return
