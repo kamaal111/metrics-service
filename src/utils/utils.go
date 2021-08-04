@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -39,6 +40,15 @@ func ParseStringToAPIVersion(versionString string) (models.APIVersion, error) {
 	}
 	apiVersion.Patch = patch
 	return apiVersion, nil
+}
+
+func GetAPIVersionFromRequest(r *http.Request) (models.APIVersion, error) {
+	headerVersionString := r.Header.Get("version")
+	if headerVersionString == "" {
+		// TODO: Deprecate this
+		headerVersionString = "1.0"
+	}
+	return ParseStringToAPIVersion(headerVersionString)
 }
 
 func MLogger(message string, statusCode int, err error) {

@@ -6,19 +6,27 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/kamaal111/metrics-service/src/models"
 	"github.com/kamaal111/metrics-service/src/utils"
 )
 
-func processAccessToken(headerAccessToken string, appAccessToken string) (int, error) {
+func processAccessToken(headerAccessToken string, appAccessToken string, apiVersion models.APIVersion) (int, error) {
 	if headerAccessToken == "" {
 		return http.StatusBadRequest, errors.New("access token not found")
 	}
-	hasValidToken, err := utils.CompareHashAndToken(appAccessToken, headerAccessToken)
-	if !hasValidToken {
-		return http.StatusUnauthorized, errors.New("unauthorized")
-	} else if err != nil {
-		utils.MLogger("something went wrong while comparing hash", http.StatusInternalServerError, err)
-		return http.StatusInternalServerError, err
+	if apiVersion.IsLessThan(models.VERSION_2_0_0) {
+		hasValidToken, err := utils.CompareHashAndToken(appAccessToken, headerAccessToken)
+		if !hasValidToken {
+			return http.StatusUnauthorized, errors.New("unauthorized")
+		} else if err != nil {
+			utils.MLogger("something went wrong while comparing hash", http.StatusInternalServerError, err)
+			return http.StatusInternalServerError, err
+		}
+		return http.StatusOK, nil
+	} else {
+		if headerAccessToken != appAccessToken {
+			return http.StatusUnauthorized, errors.New("unauthorized")
+		}
 	}
 	return http.StatusOK, nil
 }
